@@ -2,8 +2,10 @@ package pkg
 
 import (
 	"encoding/json"
+	"fmt"
 	"github.com/gin-gonic/gin"
 	"github.com/golang/glog"
+	"github.com/pkg/errors"
 	"github.com/spf13/viper"
 )
 
@@ -15,6 +17,10 @@ func createRangeValues() (result []string, err error) {
 	rawRangeValue := viper.GetString(ConfigKeyRangeValueRange)
 
 	err = json.Unmarshal([]byte(rawRangeValue), &result)
+	if err != nil {
+		message := fmt.Sprintf("Could not unmarshal range json [%s]", rawRangeValue)
+		err = errors.Wrap(err, message)
+	}
 
 	return result, err
 }
@@ -34,6 +40,10 @@ func (s *server) handleCheckout(c *gin.Context) {
 	}
 
 	c.JSON(200, rangeValue)
+}
+
+func (s *server) handleHealthz(c *gin.Context) {
+	c.Status(200)
 }
 
 func NewServer() (server, error) {
@@ -59,6 +69,7 @@ func (s *server) Start() {
 
 	router.GET("/checkout", s.handleCheckout)
 	router.DELETE("/checkout/:rangeValue", s.handleCheckin)
+	router.GET("/healthz", s.handleHealthz)
 
 	router.Run(":8080")
 }
