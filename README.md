@@ -1,4 +1,4 @@
-# range-value-broker
+# range-value-mutex-broker
 
 Check in and out range values as mutexes.
 
