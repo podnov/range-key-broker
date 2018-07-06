@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"github.com/go-redsync/redsync"
 	"github.com/golang/glog"
+	"time"
 )
 
 type broker struct {
@@ -27,6 +28,7 @@ func (b *broker) CheckIn(rangeValue string) (err error) {
 func (b *broker) CheckOut() (string, error) {
 	var acquiredMutex *string
 	var err error
+	checkoutSleepSeconds := 1
 
 	for acquiredMutex == nil {
 		for name, mutex := range b.mutexes {
@@ -38,6 +40,13 @@ func (b *broker) CheckOut() (string, error) {
 			} else {
 				glog.Infof("Attempt to lock [%s] failed: %s", name, err)
 			}
+		}
+
+		glog.Info("Iterated all mutexes, none available, sleeping [%v] seconds", checkoutSleepSeconds)
+
+		time.Sleep(time.Duration(checkoutSleepSeconds) * time.Second)
+		if checkoutSleepSeconds < 32 {
+			checkoutSleepSeconds *= 2
 		}
 	}
 

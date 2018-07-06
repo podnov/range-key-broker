@@ -41,10 +41,12 @@ func createPool() *redis.Pool {
 			}
 
 			password := viper.GetString(ConfigKeyRedisPassword)
-			if _, err := result.Do("AUTH", password); err != nil {
-				result.Close()
-				message := fmt.Sprintf("redis.Do Auth failed")
-				return nil, errors.Wrap(err, message)
+			if password != "" {
+				if _, err := result.Do("AUTH", password); err != nil {
+					result.Close()
+					message := fmt.Sprintf("redis.Do Auth failed")
+					return nil, errors.Wrap(err, message)
+				}
 			}
 
 			return result, nil
@@ -62,6 +64,5 @@ func createPool() *redis.Pool {
 func createRedsync() *redsync.Redsync {
 	pool := createPool()
 	pools := []redsync.Pool{pool}
-
 	return redsync.New(pools)
 }
