@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/go-redsync/redsync"
+	"github.com/golang/glog"
 )
 
 type broker struct {
@@ -34,6 +35,8 @@ func (b *broker) CheckOut() (string, error) {
 			if err == nil {
 				acquiredMutex = &name
 				break
+			} else {
+				glog.Infof("Attempt to lock [%s] failed: %s", name, err)
 			}
 		}
 	}
