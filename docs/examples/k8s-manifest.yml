@@ -1,0 +1,49 @@
+---
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: rvmb
+  namespace: default
+  labels:
+    component: rvmb
+spec:
+  replicas: 2
+  strategy:
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
+    type: RollingUpdate
+  template:
+    metadata:
+      labels:
+        component: rvmb
+    spec:
+      containers:
+      - name: rvmb
+        image: have-to.build-it.yourself/podnov/range-value-mutex-broker:0.1.0
+        resources:
+          limits:
+            cpu: 250m
+            memory: "128M"
+        env:
+        - name: RANGE_VALUE_BROKER_RANGE
+          value: '["0","1","2","3","4","5","6","7","8","9"]'
+        - name: RANGE_VALUE_BROKER_REDIS_ADDRESS
+          # redis installed via https://github.com/kubernetes/charts/tree/master/stable/redis-ha
+          value: rvmb-redis-ha-master-svc:6379
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    component: rvmb
+  name: rvmb
+  namespace: default
+spec:
+  ports:
+  - port: 8080
+    targetPort: 8080
+  selector:
+    component: rvmb
+  type: ClusterIP
